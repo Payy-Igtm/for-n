@@ -22,7 +22,7 @@
             width: 100vw;
         }
 
-        /* CANVAS BACKGROUND GALAXY ULTRA-4K */
+        /* CANVAS BACKGROUND GALAXY & FLOWERS */
         #interactiveGalaxy {
             position: fixed;
             top: 0;
@@ -225,7 +225,7 @@
             font-size: 13px; cursor: pointer; z-index: 200; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(8px);
         }
 
-        /* REVISI POSISI TEKS SLIDE AKHIR: PINDAH KE ATAS DAN TIDAK MENUTUPI TENGAH */
+        /* POSISI TEKS SLIDE AKHIR */
         .top-aligned-content {
             position: absolute;
             top: 6%;
@@ -235,6 +235,20 @@
             pointer-events: none;
             transition: all 0.6s ease;
         }
+
+        /* HINT KLIK HALAMAN BUNGA */
+        .flower-hint {
+            position: absolute;
+            bottom: 120px;
+            font-size: 13px;
+            color: rgba(255, 182, 193, 0.7);
+            font-style: italic;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -339,13 +353,19 @@
             <div class="gift-icon" style="filter: drop-shadow(0 0 20px rgba(255,105,180,0.8));">🎁</div>
         </div>
         <p class="hint-text" id="click-gift-hint" style="color:#ddd; position: absolute; bottom: 35%;">👉 Klik kado terakhir ini 👈</p>
+        
+        <button id="goto-flowers-btn" style="display: none; position: absolute; bottom: 15%; z-index: 100;" onclick="switchToFlowerField()">✦ LIHAT KEJUTAN TERAKHIR ✦</button>
     </div>
+
+    <div class="section" id="slide-flowers" style="justify-content: flex-start; padding-top: 80px;">
+        <div class="flower-hint">✨ Sentuh atau Klik di mana saja untuk menumbuhkan bunga baru ✨</div>
+    </div>
+
 
     <script>
         const canvas = document.getElementById('interactiveGalaxy');
         const ctx = canvas.getContext('2d');
         
-        // Optimasi Engine Resolusi Ultra-4K Menyesuaikan Rasio Layar Asli Device
         let R_WIDTH, R_HEIGHT, dpr;
         function resizeCanvas() {
             dpr = window.devicePixelRatio || 1;
@@ -361,7 +381,7 @@
         let currentMode = "normal"; 
 
         // --- PARTIKEL MODE 1: GALAXY STARS UTAMA ---
-        const particleCount = 600;
+        const particleCount = 400;
         const starColors = ['rgba(255, 255, 255, ', 'rgba(180, 180, 255, ', 'rgba(255, 200, 220, '];
         let particles = []; let mouse = { x: null, y: null, active: false };
 
@@ -398,9 +418,8 @@
             }
         }
 
-        // --- PARTIKEL MODE 2: REVISI NEBULA PUSARAN GALAXY INDONESIA ---
+        // --- PARTIKEL MODE 2: NEBULA PUSARAN GALAXY ---
         let vortexParticles = [];
-        // REVISI: Semua bahasa asing diganti total ke bahasa romantis Indonesia
         const textFloating = ["SELAMAT ULANG TAHUN", "AKU CINTA KAMU", "KAMU ADALAH KEAJAIBAN", "CINTA SEJATIKU", "NAYE SAYANG 💜", "BAHAGIA SELALU CINTAKU"];
         
         class VortexParticle {
@@ -424,16 +443,16 @@
             }
             draw() {
                 let centerX = R_WIDTH / 2;
-                let centerY = R_HEIGHT / 2 + 50; // Diturunkan sedikit agar seimbang dengan posisi teks di atas
+                let centerY = R_HEIGHT / 2 + 50; 
                 let x = centerX + Math.cos(this.angle) * this.radius;
                 let y = centerY + Math.sin(this.angle) * this.radius * 0.42; 
 
                 if (this.isText) {
                     ctx.save();
                     ctx.font = "600 12px Poppins";
-                    ctx.fillStyle = "rgba(255, 192, 203, 0.9)";
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.9)"; 
                     ctx.shadowBlur = 6;
-                    ctx.shadowColor = "#ff1493";
+                    ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
                     ctx.fillText(this.textStr, x, y);
                     ctx.restore();
                 } else {
@@ -445,15 +464,12 @@
             }
         }
 
-        // REVISI: LAMBANG LOVE REAL GALAKSI DARI RIBUAN PARTIKEL BERPENDAR KOSMIK
+        // --- LAMBANG LOVE REAL GALAKSI BERWARNA PUTIH KOSMIK BERPENDAR ---
         let heartGalaxyParticles = [];
         class HeartGalaxyParticle {
             constructor(x, y) {
-                this.baseX = x;
-                this.baseY = y;
-                this.x = x;
-                this.y = y;
-                this.size = Math.random() * 2.2 + 0.5;
+                this.baseX = x; this.baseY = y; this.x = x; this.y = y;
+                this.size = Math.random() * 2.5 + 0.6;
                 this.alpha = Math.random() * 0.6 + 0.4;
                 this.glowSpeed = Math.random() * 0.02 + 0.01;
                 this.wobbleSpeed = Math.random() * 0.05 + 0.02;
@@ -461,42 +477,28 @@
                 this.angle = Math.random() * Math.PI * 2;
             }
             update() {
-                // Membuat partikel rasi bintang bergetar statis alami mirip bintang nebula asli
                 this.angle += this.wobbleSpeed;
                 this.x = this.baseX + Math.cos(this.angle) * this.wobbleAmount;
                 this.y = this.baseY + Math.sin(this.angle) * this.wobbleAmount;
-                
-                // Efek denyut cahaya (twinkling) kosmik
                 this.alpha += this.glowSpeed;
                 if (this.alpha > 0.95 || this.alpha < 0.3) this.glowSpeed = -this.glowSpeed;
             }
             draw() {
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 105, 180, ${this.alpha})`;
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = "#ff1493";
-                ctx.fill();
-                ctx.restore();
+                ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.shadowBlur = 15; ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
+                ctx.fill(); ctx.restore();
             }
         }
 
         function initHeartGalaxyGrid() {
-            let centerX = R_WIDTH / 2;
-            let centerY = R_HEIGHT / 2 - 80; // Posisi mengambang cantik di tengah atas pusaran kosmik
+            let centerX = R_WIDTH / 2; let centerY = R_HEIGHT / 2 - 80; 
             let heartScale = Math.min(R_WIDTH, R_HEIGHT) * 0.014;
-
-            // Membangun matriks rasi bintang berwujud jantung hati kosmik
             for (let t = 0; t < Math.PI * 2; t += 0.012) {
                 let hx = 16 * Math.pow(Math.sin(t), 3);
                 let hy = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-                
-                let posX = centerX + hx * heartScale;
-                let posY = centerY - hy * heartScale;
-                
+                let posX = centerX + hx * heartScale; let posY = centerY - hy * heartScale;
                 heartGalaxyParticles.push(new HeartGalaxyParticle(posX, posY));
-                // Menambah partikel acak di dalam ruang untuk efek awan debu nebula bintang
                 if(Math.random() < 0.45) {
                     let innerScale = Math.random();
                     heartGalaxyParticles.push(new HeartGalaxyParticle(centerX + hx * heartScale * innerScale, centerY - hy * heartScale * innerScale));
@@ -504,31 +506,193 @@
             }
         }
 
-        function initGalaxy() { for (let i = 0; i < particleCount; i++) particles.push(new Particle()); }
-        
+
+        // ==============================================================================
+        // --- DATA & ALGORITMA LOGIK BUNGA MEKAR INTERAKTIF (MODE 3) ---
+        // ==============================================================================
+        let dynamicFlowers = [];
+        let fireflies = [];
+
+        class GlowingFlower {
+            constructor(x) {
+                this.x = x;
+                this.y = R_HEIGHT; 
+                this.targetHeight = Math.random() * (R_HEIGHT * 0.45) + (R_HEIGHT * 0.25); 
+                this.currentHeight = 0;
+                this.growthSpeed = Math.random() * 2.5 + 1.5;
+                this.bloomProgress = 0;
+                this.maxBloomRadius = Math.random() * 12 + 10;
+                this.stemColor = `rgba(144, 238, 144, ${Math.random() * 0.3 + 0.6})`; // Hijau glowing lembut
+                this.petalColor = `rgba(255, 105, 180, ${Math.random() * 0.2 + 0.8})`; // Pink murni bercahaya
+                this.swayAngle = Math.random() * 100;
+                this.swaySpeed = Math.random() * 0.02 + 0.01;
+                this.swayAmount = Math.random() * 3 + 1;
+            }
+            update() {
+                this.swayAngle += this.swaySpeed;
+                if (this.currentHeight < this.targetHeight) {
+                    this.currentHeight += this.growthSpeed;
+                } else if (this.bloomProgress < 1) {
+                    this.bloomProgress += 0.015; // Kecepatan mekar kelopak
+                }
+            }
+            draw() {
+                let currentSway = Math.sin(this.swayAngle) * this.swayAmount;
+                let topY = R_HEIGHT - this.currentHeight;
+                let topX = this.x + currentSway;
+
+                // 1. Gambar Batang Tumbuh
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(this.x, R_HEIGHT);
+                ctx.quadraticCurveTo(this.x + currentSway * 0.5, R_HEIGHT - this.currentHeight * 0.5, topX, topY);
+                ctx.strokeStyle = this.stemColor;
+                ctx.lineWidth = 3.5;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "rgba(144, 238, 144, 0.5)";
+                ctx.stroke();
+                ctx.restore();
+
+                // 2. Gambar Daun di Sisi Kiri & Kanan Batang
+                if (this.currentHeight > this.targetHeight * 0.4) {
+                    ctx.save();
+                    ctx.fillStyle = this.stemColor;
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = this.stemColor;
+                    
+                    // Daun Kiri
+                    ctx.beginPath();
+                    ctx.ellipse(this.x - 12 + currentSway*0.3, R_HEIGHT - this.targetHeight*0.4, 10, 4, -Math.PI/6, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Daun Kanan
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + 12 + currentSway*0.3, R_HEIGHT - this.targetHeight*0.6, 12, 4.5, Math.PI/6, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 3. Gambar Mekar Kelopak Bunga Berwarna Pink Cerah
+                if (this.currentHeight >= this.targetHeight && this.bloomProgress > 0) {
+                    let r = this.maxBloomRadius * this.bloomProgress;
+                    ctx.save();
+                    ctx.shadowBlur = 22;
+                    ctx.shadowColor = "rgba(255, 20, 147, 0.9)"; // Efek neon pink mewah
+                    
+                    // Kelopak melingkar indah (5-6 Daun Kelopak)
+                    for (let i = 0; i < 6; i++) {
+                        let angle = (Math.PI * 2 / 6) * i + (this.swayAngle * 0.1);
+                        let petalX = topX + Math.cos(angle) * (r * 0.6);
+                        let petalY = topY + Math.sin(angle) * (r * 0.6);
+                        
+                        ctx.beginPath();
+                        ctx.fillStyle = this.petalColor;
+                        ctx.arc(petalX, petalY, r * 0.65, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Inti Putik Bunga (Glow Kuning Hangat di Tengah)
+                    ctx.beginPath();
+                    ctx.fillStyle = "#fffef0";
+                    ctx.arc(topX, topY, r * 0.3, 0, Math.PI * 2);
+                    ctx.shadowColor = "#fff";
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        // Partikel Kunang-kunang Mengitari Bunga
+        class Firefly {
+            constructor() {
+                this.x = Math.random() * R_WIDTH;
+                this.y = Math.random() * R_HEIGHT;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.speedY = Math.random() * -0.5 - 0.2; // Bergerak perlahan ke atas
+                this.alpha = Math.random() * 0.5 + 0.3;
+                this.glowDelta = Math.random() * 0.02 + 0.01;
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                this.alpha += this.glowDelta;
+                if (this.alpha > 0.9 || this.alpha < 0.2) this.glowDelta = -this.glowDelta;
+                if (this.y < -10) { this.y = R_HEIGHT + 10; this.x = Math.random() * R_WIDTH; }
+            }
+            draw() {
+                ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255, 192, 203, ${this.alpha})`; // Kunang pink lembut senada
+                ctx.shadowBlur = 10; ctx.shadowColor = "pink"; ctx.fill(); ctx.restore();
+            }
+        }
+
+        function initFlowerField() {
+            // Tumbuhkan barisan bunga utama di awal secara merata
+            let count = Math.floor(R_WIDTH / 75);
+            for (let i = 0; i <= count; i++) {
+                let initialX = (R_WIDTH / count) * i + (Math.random() * 20 - 10);
+                setTimeout(() => {
+                    dynamicFlowers.push(new GlowingFlower(initialX));
+                }, i * 150); // Efek tumbuh bergantian berurutan
+            }
+            for (let i = 0; i < 60; i++) fireflies.push(new Firefly());
+        }
+
+        // Deteksi klik layar khusus di halaman bunga untuk memunculkan bunga baru
+        window.addEventListener('click', (e) => {
+            if (currentMode === "flowers") {
+                // Tumbuhkan rasi bunga baru tepat di koordinat X klik kursor
+                dynamicFlowers.push(new GlowingFlower(e.clientX));
+                // Tambahkan ekstra bunga mini di sebelahnya agar lebih natural rimbun
+                if(Math.random() < 0.7) {
+                    dynamicFlowers.push(new GlowingFlower(e.clientX + (Math.random() * 40 - 20)));
+                }
+            }
+        });
+
+
+        // ==============================================================================
+        // --- GLOBAL LOOP ANIMASI KANVAS ---
+        // ==============================================================================
         function animateGalaxy() {
             if (currentMode === "normal") {
                 ctx.fillStyle = 'rgba(3, 0, 5, 0.2)'; ctx.fillRect(0, 0, R_WIDTH, R_HEIGHT);
                 ctx.fillStyle = 'rgba(180, 100, 255, 0.05)'; ctx.filter = 'blur(80px)'; ctx.beginPath();
                 ctx.ellipse(R_WIDTH/2, R_HEIGHT/2, R_WIDTH*0.3, R_HEIGHT*0.3, Math.PI/4, 0, Math.PI * 2); ctx.fill(); ctx.filter = 'none';
                 particles.forEach(p => { p.update(); p.draw(); });
-            } else if (currentMode === "vortex") {
+            } 
+            else if (currentMode === "vortex") {
                 ctx.fillStyle = 'rgba(3, 0, 5, 0.15)'; ctx.fillRect(0, 0, R_WIDTH, R_HEIGHT);
-                
-                // Inti Pusat Lubang Hitam Galaksi
-                ctx.save();
-                ctx.filter = 'blur(12px)';
-                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-                ctx.beginPath();
-                ctx.ellipse(R_WIDTH/2, R_HEIGHT/2 + 50, 25, 12, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-
-                // Render Pusaran Partikel & Teks Indonesia Mengorbit
+                ctx.save(); ctx.filter = 'blur(12px)'; ctx.fillStyle = 'rgba(0, 0, 0, 1)'; ctx.beginPath();
+                ctx.ellipse(R_WIDTH/2, R_HEIGHT/2 + 50, 25, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
                 vortexParticles.forEach(p => { p.update(); p.draw(); });
-
-                // Render Lambang Love yang Terbuat dari Real Galaksi Partikel Berpendar
                 heartGalaxyParticles.forEach(hp => { hp.update(); hp.draw(); });
+            } 
+            else if (currentMode === "flowers") {
+                // Background gelap malam dengan partikel kunang-kunang berkelap-kelip
+                ctx.fillStyle = 'rgba(3, 0, 5, 0.25)'; ctx.fillRect(0, 0, R_WIDTH, R_HEIGHT);
+                
+                // Render kunang-kunang background
+                fireflies.forEach(f => { f.update(); f.draw(); });
+                
+                // Render semua objek Bunga Mekar Pink
+                dynamicFlowers.forEach(f => { f.update(); f.draw(); });
+
+                // 4. Render Hamparan Rumput Bercahaya Hijau di bagian paling bawah layar
+                ctx.save();
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = "rgba(50, 205, 50, 0.7)";
+                for (let i = 0; i < R_WIDTH; i += 8) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, R_HEIGHT);
+                    // Garis rumput melengkung tipis organik naik ke atas setinggi 20-40px
+                    let grassH = 25 + Math.sin(i * 0.05) * 10;
+                    ctx.lineTo(i + Math.sin(i + dynamicFlowers.length)*2, R_HEIGHT - grassH);
+                    ctx.strokeStyle = "rgba(34, 139, 34, 0.8)";
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                }
+                ctx.restore();
             }
             requestAnimationFrame(animateGalaxy);
         }
@@ -567,6 +731,12 @@
             }
         }
 
+        // --- TRANSISI KE HALAMAN BUNGA ---
+        function switchToFlowerField() {
+            nextSlide('slide-flowers');
+            currentMode = "flowers";
+            initFlowerField();
+        }
 
         // --- WHATSAPP REDIRECT LOGIC ---
         function sendToWhatsApp() {
@@ -578,28 +748,20 @@
             const phoneNumber = "62895351845353"; 
             const encodedText = encodeURIComponent(`Halo! Ini Make a Wish & Secret Message dariku:\n\n"${messageText}"`);
             const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedText}`;
-            
             window.open(waUrl, '_blank');
-
-            setTimeout(() => {
-                nextSlide('slide-thankyou');
-            }, 1000);
+            setTimeout(() => { nextSlide('slide-thankyou'); }, 1000);
         }
-
 
         // --- JAKARTA TIME (WIB) COUNTDOWN LOGIC ---
         const targetDateString = "2026-07-02T00:00:00"; 
-
         function updateCountdown() {
             const now = new Date();
             const utcNow = now.getTime() + (now.getTimezoneOffset() * 60000);
             const jakartaOffset = 7 * 60 * 60 * 1000;
             const jakartaNow = new Date(utcNow + jakartaOffset).getTime();
-
             const target = new Date(targetDateString);
             const utcTarget = target.getTime() + (target.getTimezoneOffset() * 60000);
             const targetJakarta = new Date(utcTarget + jakartaOffset).getTime();
-
             const difference = targetJakarta - jakartaNow;
 
             const days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -617,37 +779,30 @@
         const countdownInterval = setInterval(updateCountdown, 1000);
         updateCountdown();
 
-
-        // ==============================================================================
-        // AKTIVASI GALAKSI PUSARAN HATI REAL KOSMIK ULTRA-4K
-        // ==============================================================================
+        // AKTIVASI GALAKSI PUSARAN HATI
         function activateHeartVortex() {
             document.getElementById('final-gift-box').style.display = 'none';
             document.getElementById('click-gift-hint').style.display = 'none';
             
-            // Mengubah Judul Akhir Menjadi Lebih Estetik Menyesuaikan Ruang Kosong Atas
             const titleH1 = document.getElementById('thankyou-title');
             titleH1.innerHTML = "Semesta Cintaku 💜";
-            titleH1.style.textShadow = "0 0 20px rgba(255,20,147,0.8)";
+            titleH1.style.textShadow = "0 0 25px rgba(255,255,255,0.8)";
             
             const hintP = document.getElementById('thankyou-hint');
             hintP.innerText = "Selamat ulang tahun sayangku, seluruh keindahan rasi bintang ini didedikasikan hanya untukmu. I LOVE YOU!";
 
-            // Membangun Struktur 2.500 Partikel Galaksi Ultra-4K Ringan
-            for (let i = 0; i < 2500; i++) {
-                vortexParticles.push(new VortexParticle(false));
-            }
+            for (let i = 0; i < 1500; i++) vortexParticles.push(new VortexParticle(false));
+            textFloating.forEach(txt => vortexParticles.push(new VortexParticle(true, txt)));
 
-            // Memasukkan Kata-kata Orbit Berbahasa Indonesia
-            textFloating.forEach(txt => {
-                vortexParticles.push(new VortexParticle(true, txt));
-            });
-
-            // Inisialisasi Bentuk Jantung Hati Menggunakan Partikel Kosmik
             initHeartGalaxyGrid();
-
-            // Jalankan Engine Render Mode Pusaran
             currentMode = "vortex";
+
+            // Munculkan tombol kelanjutan menuju taman bunga bercahaya setelah 3 detik galaksi berputar indah
+            setTimeout(() => {
+                const btn = document.getElementById('goto-flowers-btn');
+                btn.style.display = 'inline-block';
+                btn.style.opacity = '1';
+            }, 3000);
         }
     </script>
 </body>
